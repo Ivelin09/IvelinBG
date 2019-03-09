@@ -1,389 +1,165 @@
-# ws: a Node.js WebSocket library
+# node-ytdl-core
+[![Build Status](https://secure.travis-ci.org/fent/node-ytdl-core.svg)](http://travis-ci.org/fent/node-ytdl-core)
+[![Dependency Status](https://david-dm.org/fent/node-ytdl-core.svg)](https://david-dm.org/fent/node-ytdl-core)
+[![codecov](https://codecov.io/gh/fent/node-ytdl-core/branch/master/graph/badge.svg)](https://codecov.io/gh/fent/node-ytdl-core)
+[![Discord](https://img.shields.io/discord/484464227067887645.svg)](https://discord.gg/V3vSCs7)
 
-[![Version npm](https://img.shields.io/npm/v/ws.svg)](https://www.npmjs.com/package/ws)
-[![Linux Build](https://img.shields.io/travis/websockets/ws/master.svg)](https://travis-ci.org/websockets/ws)
-[![Windows Build](https://ci.appveyor.com/api/projects/status/github/websockets/ws?branch=master&svg=true)](https://ci.appveyor.com/project/lpinca/ws)
-[![Coverage Status](https://img.shields.io/coveralls/websockets/ws/master.svg)](https://coveralls.io/r/websockets/ws?branch=master)
+Yet another youtube downloading module. Written with only Javascript and a node-friendly streaming interface.
 
-ws is a simple to use, blazing fast, and thoroughly tested WebSocket client
-and server implementation.
+For a CLI version of this, check out [ytdl](https://github.com/fent/node-ytdl), [pully](https://github.com/JimmyBoh/pully), and [yodl](https://github.com/Luxray5474/yodl).
 
-Passes the quite extensive Autobahn test suite: [server][server-report],
-[client][client-report].
+# Support
+You can contact us for support on our [chat server](https://discord.gg/V3vSCs7)
 
-**Note**: This module does not work in the browser. The client in the docs is a
-reference to a back end with the role of a client in the WebSocket
-communication. Browser clients must use the native
-[`WebSocket`](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket) object.
-To make the same code work seamlessly on Node.js and the browser, you can use
-one of the many wrappers available on npm, like
-[isomorphic-ws](https://github.com/heineiuo/isomorphic-ws).
-
-## Table of Contents
-
-* [Protocol support](#protocol-support)
-* [Installing](#installing)
-  + [Opt-in for performance and spec compliance](#opt-in-for-performance-and-spec-compliance)
-* [API docs](#api-docs)
-* [WebSocket compression](#websocket-compression)
-* [Usage examples](#usage-examples)
-  + [Sending and receiving text data](#sending-and-receiving-text-data)
-  + [Sending binary data](#sending-binary-data)
-  + [Server example](#server-example)
-  + [Broadcast example](#broadcast-example)
-  + [ExpressJS example](#expressjs-example)
-  + [echo.websocket.org demo](#echowebsocketorg-demo)
-  + [Other examples](#other-examples)
-* [Error handling best practices](#error-handling-best-practices)
-* [FAQ](#faq)
-  + [How to get the IP address of the client?](#how-to-get-the-ip-address-of-the-client)
-  + [How to detect and close broken connections?](#how-to-detect-and-close-broken-connections)
-  + [How to connect via a proxy?](#how-to-connect-via-a-proxy)
-* [Changelog](#changelog)
-* [License](#license)
-
-## Protocol support
-
-* **HyBi drafts 07-12** (Use the option `protocolVersion: 8`)
-* **HyBi drafts 13-17** (Current default, alternatively option `protocolVersion: 13`)
-
-## Installing
-
-```
-npm install --save ws
-```
-
-### Opt-in for performance and spec compliance
-
-There are 2 optional modules that can be installed along side with the ws
-module. These modules are binary addons which improve certain operations.
-Prebuilt binaries are available for the most popular platforms so you don't
-necessarily need to have a C++ compiler installed on your machine.
-
-- `npm install --save-optional bufferutil`: Allows to efficiently perform
-  operations such as masking and unmasking the data payload of the WebSocket
-  frames.
-- `npm install --save-optional utf-8-validate`: Allows to efficiently check
-  if a message contains valid UTF-8 as required by the spec.
-
-## API docs
-
-See [`/doc/ws.md`](./doc/ws.md) for Node.js-like docs for the ws classes.
-
-## WebSocket compression
-
-ws supports the [permessage-deflate extension][permessage-deflate] which
-enables the client and server to negotiate a compression algorithm and its
-parameters, and then selectively apply it to the data payloads of each
-WebSocket message.
-
-The extension is disabled by default on the server and enabled by default on
-the client. It adds a significant overhead in terms of performance and memory
-consumption so we suggest to enable it only if it is really needed.
-
-Note that Node.js has a variety of issues with high-performance compression,
-where increased concurrency, especially on Linux, can lead to
-[catastrophic memory fragmentation][node-zlib-bug] and slow performance.
-If you intend to use permessage-deflate in production, it is worthwhile to set
-up a test representative of your workload and ensure Node.js/zlib will handle
-it with acceptable performance and memory usage.
-
-Tuning of permessage-deflate can be done via the options defined below. You can
-also use `zlibDeflateOptions` and `zlibInflateOptions`, which is passed directly
-into the creation of [raw deflate/inflate streams][node-zlib-deflaterawdocs].
-
-See [the docs][ws-server-options] for more options.
+# Usage
 
 ```js
-const WebSocket = require('ws');
+const fs = require('fs');
+const ytdl = require('ytdl-core');
 
-const wss = new WebSocket.Server({
-  port: 8080,
-  perMessageDeflate: {
-    zlibDeflateOptions: { // See zlib defaults.
-      chunkSize: 1024,
-      memLevel: 7,
-      level: 3,
-    },
-    zlibInflateOptions: {
-      chunkSize: 10 * 1024
-    },
-    // Other options settable:
-    clientNoContextTakeover: true, // Defaults to negotiated value.
-    serverNoContextTakeover: true, // Defaults to negotiated value.
-    clientMaxWindowBits: 10,       // Defaults to negotiated value.
-    serverMaxWindowBits: 10,       // Defaults to negotiated value.
-    // Below options specified as default values.
-    concurrencyLimit: 10,          // Limits zlib concurrency for perf.
-    threshold: 1024,               // Size (in bytes) below which messages
-                                   // should not be compressed.
+ytdl('http://www.youtube.com/watch?v=A02s8omM_hI')
+  .pipe(fs.createWriteStream('video.flv'));
+```
+
+
+# API
+### ytdl(url, [options])
+
+Attempts to download a video from the given url. Returns a [readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable). `options` can have the following keys
+
+* `quality` - Video quality to download. Can be an [itag value](http://en.wikipedia.org/wiki/YouTube#Quality_and_formats), a list of itag values, or `highest`/`lowest`/`highestaudio`/`lowestaudio`/`highestvideo`/`lowestvideo`. `highestaudio`/`lowestaudio`/`highestvideo`/`lowestvideo` all prefer audio/video only respectively. Defaults to `highest`.
+* `filter` - Used to decide what format to download. Can be `audioandvideo` to filter formats that contain both video and audio, `video` to filter for formats that contain video, or `videoonly` for formats that contain video and no additional audio track. Can also be `audio` or `audioonly`. You can give a filtering function that gets called with each format available. This function is given the `format` object as its first argument, and should return true if the format is preferable.
+* `format` - Primarily used to download specific video or audio streams. This can be a specific `format` object returned from `getInfo`.
+  * Supplying this option will ignore the `filter` and `quality` options since the format is explicitly provided.
+* `range` - A byte range in the form `{start: INT, end: INT}` that specifies part of the file to download, ie {start: 10355705, end: 12452856}.
+  * This downloads a portion of the file, and not a separately spliced video.
+* `begin` - What time in the video to begin. Supports formats `00:00:00.000`, `0ms, 0s, 0m, 0h`, or number of milliseconds. Example: `1:30`, `05:10.123`, `10m30s`. For live videos, this also accepts a unix timestamp or Date, and defaults to `Date.now()`.
+  * This option may not work on super short (less than 30s) videos, and has to be at or above 6s, see [#129](https://github.com/fent/node-ytdl-core/issues/129).
+  * It may also not work for some formats, see [#219](https://github.com/fent/node-ytdl-core/issues/219).
+* `liveBuffer` - How much time buffer to use for live videos in milliseconds. Default is `20000`.
+* `requestOptions` - Anything to merge into the request options which [miniget](https://github.com/fent/node-miniget) is called with, such as headers.
+* `highWaterMark` - How much of the video download to buffer into memory. See [node's docs](https://nodejs.org/api/stream.html#stream_constructor_new_stream_writable_options) for more.
+* `lang` - The 2 character symbol of a language. Default is `en`.
+
+```js
+// Example with `filter` option.
+ytdl(url, { filter: (format) => format.container === 'mp4' })
+  .pipe(fs.createWriteStream('video.mp4'));
+```
+
+#### Event: info
+* [`ytdl.videoInfo`](example/info.json) - Info.
+* [`ytdl.videoFormat`](typings/index.d.ts#L22) - Video Format.
+
+Emitted when the a video's `info` hash is fetched, along with the chosen format metadata to download. `format.url` might be different if `start` was given.
+
+#### Event: response
+* [`http.ServerResponse`](https://nodejs.org/api/http.html#http_class_http_serverresponse) - Response.
+
+Emitted when the video response has been found and has started downloading or after any successful reconnects. Can be used to get the size of the download.
+
+#### Event: progress
+* `number` - Chunk byte length.
+* `number` - Total bytes or segments downloaded.
+* `number` - Total bytes or segments.
+
+Emitted whenever a new chunk is received. Passes values describing the download progress.
+
+### ytdl.getBasicInfo(url, [options], [callback(err, info)])
+
+Use this if you only want to get metainfo from a video. If `callback` isn't given, returns a promise.
+
+### ytdl.getInfo(url, [options], [callback(err, info)])
+
+Gets metainfo from a video. Includes additional formats, and ready to download deciphered URL. This is what the `ytdl()` function uses internally. If `callback` isn't given, returns a promise.
+
+### ytdl.downloadFromInfo(info, options)
+
+Once you have received metadata from a video with the `ytdl.getInfo` function, you may pass that information along with other options to this function.
+
+### ytdl.chooseFormat(formats, options)
+
+Can be used if you'd like to choose a format yourself with the [options above](#ytdlurl-options).
+
+```js
+// Example of choosing a video format.
+ytdl.getInfo(videoID, (err, info) => {
+  if (err) throw err;
+  let format = ytdl.chooseFormat(info.formats, { quality: '134' });
+  if (format) {
+    console.log('Format found!');
   }
 });
 ```
 
-The client will only use the extension if it is supported and enabled on the
-server. To always disable the extension on the client set the
-`perMessageDeflate` option to `false`.
+### ytdl.filterFormats(formats, filter)
+
+If you'd like to work with only some formats, you can use the [`filter` option above](#ytdlurl-options).
 
 ```js
-const WebSocket = require('ws');
-
-const ws = new WebSocket('ws://www.host.com/path', {
-  perMessageDeflate: false
+// Example of filtering the formats to audio only.
+ytdl.getInfo(videoID, (err, info) => {
+  if (err) throw err;
+  let audioFormats = ytdl.filterFormats(info.formats, 'audioonly');
+  console.log('Formats with only audio: ' + audioFormats.length);
 });
 ```
 
-## Usage examples
+### ytdl.validateID(id)
 
-### Sending and receiving text data
+Returns true if the given string satisfies YouTube's ID format.
 
-```js
-const WebSocket = require('ws');
+### ytdl.validateURL(url)
 
-const ws = new WebSocket('ws://www.host.com/path');
+Returns true if able to parse out a valid video ID.
 
-ws.on('open', function open() {
-  ws.send('something');
-});
+### ytdl.getURLVideoID(url)
 
-ws.on('message', function incoming(data) {
-  console.log(data);
-});
+Returns a video ID from a YouTube URL.
+
+### ytdl.getVideoID(str)
+
+Same as the above `ytdl.getURLVideoID()`, but can be called with the video ID directly, in which case it returns it. This is what ytdl uses internally.
+
+## Limitations
+
+ytdl cannot download videos that fall into the following
+* Regionally restricted (requires a [proxy](example/proxy.js))
+* Private
+* Rentals
+
+YouTube intentionally ratelimits downloads, likely to prevent bandwidth abuse. The download rate is still faster than a media player can play the video, even on 2x. See [#294](https://github.com/fent/node-ytdl-core/issues/294).
+
+## Handling Separate Streams
+
+Typically 1080p or better video does not have audio encoded with it. The audio must be downloaded separately and merged via an appropriate encoding library. `ffmpeg` is the most widely used tool, with many [Node.js modules available](https://www.npmjs.com/search?q=ffmpeg). Use the `format` objects returned from `ytdl.getInfo` to download specific streams to combine to fit your needs. Look at [example/ffmpeg.js](example/ffmpeg.js) for an example on doing this.
+
+## What if it stops working?
+
+Youtube updates their website all the time, it's not that rare for this to stop working. If it doesn't work for you and you're using the latest version, feel free to open up an issue. Make sure to check if there isn't one already with the same error.
+
+If you'd like to help fix the issue, look at the type of error first. The most common one is
+
+    Could not extract signature deciphering actions
+
+Run the tests at `test/irl-test.js` just to make sure that this is actually an issue with ytdl-core.
+
+    mocha test/irl-test.js
+
+These tests are not mocked, and they actually try to start downloading a few videos. If these fail, then it's time to debug.
+
+For getting started with that, you can look at the `extractActions()` function in [`/lib/sig.js`](https://github.com/fent/node-ytdl-core/blob/master/lib/sig.js).
+
+
+# Install
+
+```bash
+npm install ytdl-core
 ```
 
-### Sending binary data
+# Tests
+Tests are written with [mocha](https://mochajs.org)
 
-```js
-const WebSocket = require('ws');
-
-const ws = new WebSocket('ws://www.host.com/path');
-
-ws.on('open', function open() {
-  const array = new Float32Array(5);
-
-  for (var i = 0; i < array.length; ++i) {
-    array[i] = i / 2;
-  }
-
-  ws.send(array);
-});
+```bash
+npm test
 ```
-
-### Server example
-
-```js
-const WebSocket = require('ws');
-
-const wss = new WebSocket.Server({ port: 8080 });
-
-wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
-  });
-
-  ws.send('something');
-});
-```
-
-### Broadcast example
-
-```js
-const WebSocket = require('ws');
-
-const wss = new WebSocket.Server({ port: 8080 });
-
-// Broadcast to all.
-wss.broadcast = function broadcast(data) {
-  wss.clients.forEach(function each(client) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(data);
-    }
-  });
-};
-
-wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(data) {
-    // Broadcast to everyone else.
-    wss.clients.forEach(function each(client) {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(data);
-      }
-    });
-  });
-});
-```
-
-### ExpressJS example
-
-```js
-const express = require('express');
-const http = require('http');
-const url = require('url');
-const WebSocket = require('ws');
-
-const app = express();
-
-app.use(function (req, res) {
-  res.send({ msg: "hello" });
-});
-
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
-
-wss.on('connection', function connection(ws, req) {
-  const location = url.parse(req.url, true);
-  // You might use location.query.access_token to authenticate or share sessions
-  // or req.headers.cookie (see http://stackoverflow.com/a/16395220/151312)
-
-  ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
-  });
-
-  ws.send('something');
-});
-
-server.listen(8080, function listening() {
-  console.log('Listening on %d', server.address().port);
-});
-```
-
-### echo.websocket.org demo
-
-```js
-const WebSocket = require('ws');
-
-const ws = new WebSocket('wss://echo.websocket.org/', {
-  origin: 'https://websocket.org'
-});
-
-ws.on('open', function open() {
-  console.log('connected');
-  ws.send(Date.now());
-});
-
-ws.on('close', function close() {
-  console.log('disconnected');
-});
-
-ws.on('message', function incoming(data) {
-  console.log(`Roundtrip time: ${Date.now() - data} ms`);
-
-  setTimeout(function timeout() {
-    ws.send(Date.now());
-  }, 500);
-});
-```
-
-### Other examples
-
-For a full example with a browser client communicating with a ws server, see the
-examples folder.
-
-Otherwise, see the test cases.
-
-## Error handling best practices
-
-```js
-// If the WebSocket is closed before the following send is attempted
-ws.send('something');
-
-// Errors (both immediate and async write errors) can be detected in an optional
-// callback. The callback is also the only way of being notified that data has
-// actually been sent.
-ws.send('something', function ack(error) {
-  // If error is not defined, the send has been completed, otherwise the error
-  // object will indicate what failed.
-});
-
-// Immediate errors can also be handled with `try...catch`, but **note** that
-// since sends are inherently asynchronous, socket write failures will *not* be
-// captured when this technique is used.
-try { ws.send('something'); }
-catch (e) { /* handle error */ }
-```
-
-## FAQ
-
-### How to get the IP address of the client?
-
-The remote IP address can be obtained from the raw socket.
-
-```js
-const WebSocket = require('ws');
-
-const wss = new WebSocket.Server({ port: 8080 });
-
-wss.on('connection', function connection(ws, req) {
-  const ip = req.connection.remoteAddress;
-});
-```
-
-When the server runs behind a proxy like NGINX, the de-facto standard is to use
-the `X-Forwarded-For` header.
-
-```js
-wss.on('connection', function connection(ws, req) {
-  const ip = req.headers['x-forwarded-for'];
-});
-```
-
-### How to detect and close broken connections?
-
-Sometimes the link between the server and the client can be interrupted in a
-way that keeps both the server and the client unaware of the broken state of the
-connection (e.g. when pulling the cord).
-
-In these cases ping messages can be used as a means to verify that the remote
-endpoint is still responsive.
-
-```js
-const WebSocket = require('ws');
-
-const wss = new WebSocket.Server({ port: 8080 });
-
-function noop() {}
-
-function heartbeat() {
-  this.isAlive = true;
-}
-
-wss.on('connection', function connection(ws) {
-  ws.isAlive = true;
-  ws.on('pong', heartbeat);
-});
-
-const interval = setInterval(function ping() {
-  wss.clients.forEach(function each(ws) {
-    if (ws.isAlive === false) return ws.terminate();
-
-    ws.isAlive = false;
-    ws.ping(noop);
-  });
-}, 30000);
-```
-
-Pong messages are automatically sent in response to ping messages as required
-by the spec.
-
-### How to connect via a proxy?
-
-Use a custom `http.Agent` implementation like [https-proxy-agent][] or
-[socks-proxy-agent][].
-
-## Changelog
-
-We're using the GitHub [releases][changelog] for changelog entries.
-
-## License
-
-[MIT](LICENSE)
-
-[https-proxy-agent]: https://github.com/TooTallNate/node-https-proxy-agent
-[socks-proxy-agent]: https://github.com/TooTallNate/node-socks-proxy-agent
-[client-report]: http://websockets.github.io/ws/autobahn/clients/
-[server-report]: http://websockets.github.io/ws/autobahn/servers/
-[permessage-deflate]: https://tools.ietf.org/html/rfc7692
-[changelog]: https://github.com/websockets/ws/releases
-[node-zlib-bug]: https://github.com/nodejs/node/issues/8871
-[node-zlib-deflaterawdocs]: https://nodejs.org/api/zlib.html#zlib_zlib_createdeflateraw_options
-[ws-server-options]: https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback
